@@ -4,7 +4,7 @@ package com.jovianware.jv8;
 public class V8Runner {
   private V8Value Undefined_;
   public V8Value Undefined() {
-    return Undefined_;
+    return V8Undefined.instance;
   }
   
   static {
@@ -55,6 +55,5 @@ public class V8Runner {
   private long handle;
   public V8Runner() {
     handle = create();
-    Undefined_ = new V8Undefined();
   }
 }

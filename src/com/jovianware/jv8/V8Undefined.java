@@ -2,6 +2,12 @@ package com.jovianware.jv8;
 
 public class V8Undefined extends V8Value {
 
+  public static V8Undefined instance = new V8Undefined();
+
+  private V8Undefined(){
+
+  }
+
   @Override
   public boolean isUndefined() {
     return true;

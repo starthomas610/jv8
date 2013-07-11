@@ -8,8 +8,9 @@
 #include <v8.h>
 using namespace v8;
 
-#include "V8Runner.h"
 #include "jv8.h"
+#include "V8Runner.h"
+#include "JNIUtil.h"
 
 // TODO: Integrate this in with build system:
 //#define NDK_GDB_ENTRYPOINT_WAIT_HACK
@@ -20,15 +21,6 @@ namespace jv8 {
 // V8RUNNER CLASS
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-#define THROW_V8EXCEPTION(env, tryCatch)\
-  if (!tryCatch.HasCaught()) {\
-    env->ThrowNew(V8Exception_class, "Unexpected Error running JS");\
-  } else {\
-    Persistent<Value> ex = Persistent<Value>::New(isolate, tryCatch.StackTrace());\
-    env->ThrowNew(V8Exception_class, *String::Utf8Value(ex->ToString()));\
-    ex.Dispose(isolate);\
-  }\
-
 static void V8Runner_setDebuggingRunner (
   JNIEnv *env,
   jclass V8runner_class,
@@ -36,11 +28,11 @@ static void V8Runner_setDebuggingRunner (
   jint port,
   jboolean waitForConnection
 ) {
-  V8Runner* runner = (V8Runner*) env->GetLongField(jrunner, f_V8Runner_handle);
+  V8Runner* runner = (V8Runner*) env->GetLongField(jrunner, JNIUtil::f_V8Runner_handle);
   if (runner != NULL)  {
-    setDebuggingRunner(runner, port, waitForConnection);
+    runner->setDebuggingRunner(runner, port, waitForConnection);
   } else {
-    disableDebugging();
+    runner->disableDebugging();
   }
 }
 
@@ -50,47 +42,8 @@ static jobject V8Runner_runJS (
   jstring jname,
   jstring jjs
 ) {
-  V8Runner* runner = (V8Runner*) env->GetLongField(jrunner, f_V8Runner_handle);
-
-  Isolate* isolate = runner->getIsolate();
-  Handle<Context>& context = runner->getContext();
-  Locker l(isolate);
-  Isolate::Scope isolateScope(isolate);
-
-  HandleScope handle_scope;
-
-  Context::Scope context_scope(context);
-
-  const char* js = env->GetStringUTFChars(jjs, NULL);
-  const char* name = env->GetStringUTFChars(jname, NULL);
-
-  // Create a string containing the JavaScript source code.
-  Handle<String> source = String::New(js);
-
-  env->ReleaseStringUTFChars(jjs, js);
-
-  TryCatch tryCatch;
-
-  // Compile the source code.
-  Handle<Script> script = Script::Compile(source, String::New(name));
-  env->ReleaseStringUTFChars(jname, name);
-  
-  Handle<Value> result;
-
-  if (script.IsEmpty()) {
-    THROW_V8EXCEPTION(env, tryCatch)
-    return NULL;
-  }
-
-  // Run the script to get the result.
-  result = script->Run();
-
-  if (result.IsEmpty()) {
-    THROW_V8EXCEPTION(env, tryCatch)
-    return NULL;
-  }
-
-  return newV8Value(env, result);
+  V8Runner* runner = (V8Runner*) env->GetLongField(jrunner, JNIUtil::f_V8Runner_handle);
+  return runner->runJS(env, jname, jjs);
 }
 
 static jlong V8Runner_create (
@@ -104,7 +57,7 @@ static void V8Runner_dispose (
   JNIEnv *env,
   jclass obj
 ) {
-  V8Runner* r = (V8Runner*) env->GetLongField(obj, f_V8Runner_handle);
+  V8Runner* r = (V8Runner*) env->GetLongField(obj, JNIUtil::f_V8Runner_handle);
   if (r) {
     r->destroy(env);
     delete r;
@@ -117,7 +70,7 @@ static void V8Runner_map (
   jstring jname,
   jobject jmappableMethod
 ) {
-  V8Runner* runner = (V8Runner*) env->GetLongField(jrunner, f_V8Runner_handle);
+  V8Runner* runner = (V8Runner*) env->GetLongField(jrunner, JNIUtil::f_V8Runner_handle);
   const char* name = env->GetStringUTFChars(jname, NULL);
   runner->mapMethod(env, jmappableMethod, name);
   env->ReleaseStringUTFChars(jname, name);
@@ -129,46 +82,61 @@ static jobject V8Runner_callFunction (
   jobject jfunction,
   jobjectArray jargs
 ) {
-
-  if (needsToCacheClassData) {
-    cacheClassData(env);
-  }
-
-  V8Runner* runner = (V8Runner*) env->GetLongField(jrunner, f_V8Runner_handle);
-  Persistent<Value>* functionPersistent = (Persistent<Value>*) env->GetLongField(jfunction, f_V8Function_handle);
-  Persistent<Function> function = Persistent<Function>::Cast( *functionPersistent );
-
-  std::vector<Handle<Value> > args;
-  int length = env->GetArrayLength(jargs);
-  for (int i=0; i<length; i++) {
-    jobject obj = env->GetObjectArrayElement(jargs, i);
-    Handle<Value> handle = v8ValueFromJObject(env, obj);
-    args.push_back(handle);
-  }
-
-  Handle<Value> returnedJSValue = runner->callFunction(function, args);
-  return newV8Value(env, returnedJSValue);
+  V8Runner* runner = (V8Runner*) env->GetLongField(jrunner, JNIUtil::f_V8Runner_handle);
+  return runner->callFunction(env, jfunction, jargs);
 }
 
-/**
- * Releases the v8 function handler.
- */
-static void V8Function_dispose(
+static void V8Runner_disposeFunction(
   JNIEnv* env,
   jobject jfunction
 ) {
 
-  if (needsToCacheClassData) {
+  if (JNIUtil::needsToCacheClassData) {
     cacheClassData(env);
   }
 
-  Persistent<Value>* functionPersistent = (Persistent<Value>*) env->GetLongField(jfunction, f_V8Function_handle);
-  if(functionPersistent != NULL){
-    Persistent<Function> function = Persistent<Function>::Cast( *functionPersistent );
-    function.Dispose();
-    function.Clear();
-    delete functionPersistent;
+  V8Runner* runner = (V8Runner*) env->GetLongField(jfunction, JNIUtil::f_V8Function_runnerHandle);
+  runner->disposeFunction(env, jfunction);
+}
+
+Handle<Value>
+registerCallback (const Arguments& args) {
+  Isolate* isolate = args.GetIsolate();
+
+  Locker l(isolate);
+  Isolate::Scope isolateScope(isolate);
+
+  HandleScope handle_scope(isolate);
+
+  MappableMethodData* data = (MappableMethodData*) External::Cast(*args.Data())->Value();
+  JNIEnv* env;
+  JNIUtil::javaVM->AttachCurrentThread(&env, NULL);
+  
+  if (JNIUtil::needsToCacheClassData) {
+    cacheClassData(env);
   }
+
+  jobject methodObject = data->methodObject;
+
+  jobjectArray jargs = (jobjectArray) env->NewObjectArray(args.Length(), JNIUtil::V8Value_class, NULL);
+  for (int i=0; i<args.Length(); ++i) {
+    jobject wrappedArg = data->runner->newV8Value(env, args[i]);
+
+    env->SetObjectArrayElement(jargs, i, wrappedArg);
+    env->DeleteLocalRef(wrappedArg);
+  }
+
+  Handle<Value> returnVal;
+
+  jobject jresult = env->CallObjectMethod(methodObject, JNIUtil::m_V8MappableMethod_methodToRun, jargs);
+
+  env->DeleteLocalRef(jargs);
+
+  returnVal = data->runner->v8ValueFromJObject(env, jresult);
+
+  env->DeleteLocalRef(jresult);
+
+  return returnVal; // TODO
 }
 
 } // namespace jv8
@@ -183,7 +151,7 @@ static JNINativeMethod V8Runner_Methods[] = {
 };
 
 static JNINativeMethod V8Function_Methods[] = {
-  {(char*)"dispose", (char*)"()V", (void *) jv8::V8Function_dispose}
+  {(char*)"dispose", (char*)"()V", (void *) jv8::V8Runner_disposeFunction}
 };
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -228,6 +196,9 @@ jint JNI_OnLoad (
   JavaVM* vm,
   void* reserved
 ) {
+  jv8::JNIUtil::javaVM = vm;
+  jv8::JNIUtil::needsToCacheClassData = true;
+
   // Sometimes stuff breaks before `ndk-gdb` has a chance to notice.
   // Vigorously spin our wheels until `ndk-gdb` catches us.
   #ifdef NDK_GDB_ENTRYPOINT_WAIT_HACK
@@ -236,16 +207,16 @@ jint JNI_OnLoad (
   #endif
   ENV_INIT(vm)
 
-  CLASS("com/jovianware/jv8/V8Runner", jv8::V8Runner_class)
+  CLASS("com/jovianware/jv8/V8Runner", jv8::JNIUtil::V8Runner_class)
   MTABLE(V8Runner_Methods)
-  FIELD("handle", "J", jv8::f_V8Runner_handle)
+  FIELD("handle", "J", jv8::JNIUtil::f_V8Runner_handle)
   CLASS_END()
 
-  CLASS("com/jovianware/jv8/V8Function", jv8::V8Function_class)
+  CLASS("com/jovianware/jv8/V8Function", jv8::JNIUtil::V8Function_class)
   MTABLE(V8Function_Methods)
   CLASS_END()
 
-  CLASS("com/jovianware/jv8/V8Exception", jv8::V8Exception_class)
+  CLASS("com/jovianware/jv8/V8Exception", jv8::JNIUtil::V8Exception_class)
   CLASS_END()
 
   return JNI_VERSION_1_6;
