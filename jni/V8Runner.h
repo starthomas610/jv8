@@ -38,6 +38,8 @@ namespace jv8 {
     Handle<Value> v8ValueFromJObject (JNIEnv* env, jobject jobj);
     jobject newV8Value (JNIEnv* env, Handle<Value> value);
 
+    void printStackTrace();
+
     // Debugger
     static void setDebuggingRunner (V8Runner* runner, int port, bool waitForConnection);
     static void disableDebugging ();

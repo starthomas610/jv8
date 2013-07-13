@@ -6,6 +6,8 @@
 
 #include <vector>
 #include <string>
+#include <sstream>
+
 using namespace std;
 
 #include <v8.h>
@@ -162,6 +164,23 @@ namespace jv8 {
     function.Clear();
   }
 
+  void V8Runner::printStackTrace(){
+    Local<StackTrace> ex = StackTrace::CurrentStackTrace(1000);
+    int frameCount = ex->GetFrameCount();
+    std::stringstream stackTraceString("");
+    for (int i=0; i<frameCount; i++) {
+      Local<StackFrame> frame = ex->GetFrame(i);
+      stackTraceString << *String::Utf8Value(frame->GetFunctionName())
+                      << " ("
+                      << *String::Utf8Value(frame->GetScriptName())
+                      << ":"
+                      << frame->GetLineNumber()
+                      << ")"
+                      << "\n";
+    }
+    __android_log_print(ANDROID_LOG_INFO, "jv8", "Current stack trace:\n%s", stackTraceString.str().c_str());\
+  }
+
   /**
    * ============= OBJECT CONVERSION (Java <=> JS) ===========
    */
@@ -201,12 +220,15 @@ namespace jv8 {
     // String
     else if (jobjType == JNIUtil::V8VALUE_TYPE_STRING) {
       jstring jstr = (jstring) env->GetObjectField(jobj, JNIUtil::f_V8String_val);
-      const char* str = env->GetStringUTFChars(jstr, 0);
-    
-      returnVal = String::New(str);
-    
-      env->ReleaseStringUTFChars(jstr, str);
-      env->DeleteLocalRef(jstr);
+      if (jstr == NULL) {
+        returnVal = Null();
+      }
+      else {
+        const char* str = env->GetStringUTFChars(jstr, 0);
+        returnVal = String::New(str);
+        env->ReleaseStringUTFChars(jstr, str);
+        env->DeleteLocalRef(jstr);
+      }      
     }
 
     // Function
@@ -236,7 +258,7 @@ namespace jv8 {
 
     // Check whether we have an empty handle.
     if( value.IsEmpty() ){
-      __android_log_write(ANDROID_LOG_WARN, "jv8", "Empty value provided. Can't convert to Java");//Or ANDROID_LOG_INFO, .
+      __android_log_write(ANDROID_LOG_WARN, "jv8", "JS=>Java: Empty value provided. Defaulting to null.");
       return NULL;
     }
 
@@ -286,13 +308,16 @@ namespace jv8 {
       wrappedReturnValue = env->GetStaticObjectField(JNIUtil::V8Undefined_class, JNIUtil::sf_V8Undefined_instance);
     }
 
+    // null
+    else if( value->IsNull() ){
+      wrappedReturnValue = NULL;
+    }
+
     // Default to null
     else {
-      std::string desc(std::string(*String::Utf8Value(value->ToString())));
-      std::string prefix("Unsupported JS type detected: ");
-      std::string error = prefix + desc;
+      std::string jsType(std::string(*String::Utf8Value(value->ToString())));
 
-      __android_log_write(ANDROID_LOG_WARN, "jv8", error.c_str());
+      __android_log_print(ANDROID_LOG_WARN, "jv8", "JS=>Java: Unsupported JS type detected: ", jsType.c_str());
       wrappedReturnValue = NULL;
     }
 
