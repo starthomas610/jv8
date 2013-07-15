@@ -124,6 +124,11 @@ namespace jv8 {
     jobjectArray jargs
   ) {
 
+    if( jfunction == NULL ){
+      __android_log_print(ANDROID_LOG_INFO, "jv8", "callFunction called with `jfunction == NULL`. Returning NULL.");
+      return NULL;
+    }
+
     Locker l(isolate);
     Isolate::Scope isolateScope(isolate);
 
@@ -137,6 +142,11 @@ namespace jv8 {
     jlong functionPointer = env->GetLongField(jfunction, JNIUtil::f_V8Function_handle);
     Persistent<Function> function = Persistent<Function>((Function*) functionPointer);
 
+    if( function.IsEmpty() || *function == NULL ){
+      __android_log_print(ANDROID_LOG_INFO, "jv8", "callFunction called with `function == NULL`. Returning NULL.");
+      return NULL;
+    }
+
     std::vector<Handle<Value> > args;
     int length = env->GetArrayLength(jargs);
     for (int i=0; i<length; i++) {
@@ -145,7 +155,15 @@ namespace jv8 {
       args.push_back(handle);
     }
 
+    TryCatch tryCatch;
+
     Handle<Value> returnedJSValue = callFunction(function, args);
+
+    if( returnedJSValue.IsEmpty() ){
+      THROW_V8EXCEPTION(env, tryCatch)
+      return NULL;
+    }
+
     return newV8Value(env, returnedJSValue);
   }
 
@@ -259,6 +277,7 @@ namespace jv8 {
     // Check whether we have an empty handle.
     if( value.IsEmpty() ){
       __android_log_write(ANDROID_LOG_WARN, "jv8", "JS=>Java: Empty value provided. Defaulting to null.");
+      printStackTrace();
       return NULL;
     }
 
@@ -317,7 +336,7 @@ namespace jv8 {
     else {
       std::string jsType(std::string(*String::Utf8Value(value->ToString())));
 
-      __android_log_print(ANDROID_LOG_WARN, "jv8", "JS=>Java: Unsupported JS type detected: ", jsType.c_str());
+      __android_log_print(ANDROID_LOG_WARN, "jv8", "JS=>Java: Unsupported JS type detected: %s", jsType.c_str());
       wrappedReturnValue = NULL;
     }
 

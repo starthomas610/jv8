@@ -99,6 +99,14 @@ static void V8Runner_disposeFunction(
   runner->disposeFunction(env, jfunction);
 }
 
+static void V8Runner_printStackTrace (
+  JNIEnv *env,
+  jobject jrunner
+) {
+  V8Runner* runner = (V8Runner*) env->GetLongField(jrunner, JNIUtil::f_V8Runner_handle);
+  runner->printStackTrace();
+}
+
 Handle<Value>
 registerCallback (const Arguments& args) {
   Isolate* isolate = args.GetIsolate();
@@ -147,7 +155,8 @@ static JNINativeMethod V8Runner_Methods[] = {
   {(char*)"runJS", (char*)"(Ljava/lang/String;Ljava/lang/String;)Lcom/jovianware/jv8/V8Value;", (void *) jv8::V8Runner_runJS},
   {(char*)"map", (char*)"(Ljava/lang/String;Lcom/jovianware/jv8/V8MappableMethod;)V", (void *) jv8::V8Runner_map},
   {(char*)"setDebuggingRunner", (char*)"(Lcom/jovianware/jv8/V8Runner;IZ)V", (void *) jv8::V8Runner_setDebuggingRunner},
-  {(char*)"callFunction", (char*)"(Lcom/jovianware/jv8/V8Function;[Lcom/jovianware/jv8/V8Value;)Lcom/jovianware/jv8/V8Value;", (void *)jv8::V8Runner_callFunction}
+  {(char*)"callFunction", (char*)"(Lcom/jovianware/jv8/V8Function;[Lcom/jovianware/jv8/V8Value;)Lcom/jovianware/jv8/V8Value;", (void *)jv8::V8Runner_callFunction},
+  {(char*)"printStackTrace", (char*)"()V", (void *)jv8::V8Runner_printStackTrace}
 };
 
 static JNINativeMethod V8Function_Methods[] = {

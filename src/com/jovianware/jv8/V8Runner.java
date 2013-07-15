@@ -36,6 +36,7 @@ public class V8Runner {
 
   public native V8Value callFunction(V8Function function, V8Value[] args);
   public native V8Value runJS(String name, String src) throws V8Exception;
+  public native void printStackTrace();
   
   public V8Value tryRunJS(String name, String src) {
     try {
