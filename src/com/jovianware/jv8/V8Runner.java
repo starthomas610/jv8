@@ -34,30 +34,30 @@ public class V8Runner {
   private native long create();
   private native void dispose();
 
-  private native V8Value callFunction(Function function, V8Value[] args) throws V8Exception;
-  private native V8Value runJS(String name, String src) throws V8Exception;
+  private native V8Value native_callFunction(Function function, V8Value[] args) throws V8Exception;
+  private native V8Value native_runJS(String name, String src) throws V8Exception;
   public native void printStackTrace();
   
   public V8Value tryRunJS(String name, String src) {
     try {
-      return runJS(name, src);
+      return native_runJS(name, src);
     } catch (V8Exception e) {
       return null;
     }
   }
 
   // TODO: Let jv8 do the casting job on the JNI side.
-  public Object temp_callFunction(Function function, Object[] args) throws V8Exception {
+  public Object callFunction(Function function, Object[] args) throws V8Exception {
     V8Value[] arguments = new V8Value[args.length];
     for (int i=0; i<args.length; i++) {
       arguments[i] = castToV8Value(args[i]);
     }
-    return castToJavaObject(callFunction(function, arguments));
+    return castToJavaObject(native_callFunction(function, arguments));
   }
 
   // TODO: Let jv8 do the casting job on the JNI side.
-  public Object temp_runJS(String name, String src) throws V8Exception {
-    return castToJavaObject(runJS(name, src));
+  public Object runJS(String name, String src) throws V8Exception {
+    return castToJavaObject(native_runJS(name, src));
   }
   
   @Override
