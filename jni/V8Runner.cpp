@@ -315,7 +315,7 @@ namespace jv8 {
 
       Persistent<Function> functionPersistent = Persistent<Function>::New(Handle<Function>::Cast(value));
       functionPersistent.MarkIndependent();
-      wrappedReturnValue = env->NewObject(JNIUtil::V8Function_class,
+      wrappedReturnValue = env->NewObject(JNIUtil::Function_class,
         JNIUtil::m_V8Function_init,
         (jlong)this,
         (jlong)*functionPersistent

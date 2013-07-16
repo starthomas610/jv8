@@ -136,7 +136,7 @@ registerCallback (const Arguments& args) {
 
   Handle<Value> returnVal;
 
-  jobject jresult = env->CallObjectMethod(methodObject, JNIUtil::m_V8MappableMethod_methodToRun, jargs);
+  jobject jresult = env->CallObjectMethod(methodObject, JNIUtil::m_V8MappableMethod_runMethod, jargs);
 
   env->DeleteLocalRef(jargs);
 
@@ -155,7 +155,7 @@ static JNINativeMethod V8Runner_Methods[] = {
   {(char*)"runJS", (char*)"(Ljava/lang/String;Ljava/lang/String;)Lcom/jovianware/jv8/V8Value;", (void *) jv8::V8Runner_runJS},
   {(char*)"map", (char*)"(Ljava/lang/String;Lcom/jovianware/jv8/V8MappableMethod;)V", (void *) jv8::V8Runner_map},
   {(char*)"setDebuggingRunner", (char*)"(Lcom/jovianware/jv8/V8Runner;IZ)V", (void *) jv8::V8Runner_setDebuggingRunner},
-  {(char*)"callFunction", (char*)"(Lcom/jovianware/jv8/V8Function;[Lcom/jovianware/jv8/V8Value;)Lcom/jovianware/jv8/V8Value;", (void *)jv8::V8Runner_callFunction},
+  {(char*)"callFunction", (char*)"(Lcom/jovianware/jv8/Function;[Lcom/jovianware/jv8/V8Value;)Lcom/jovianware/jv8/V8Value;", (void *)jv8::V8Runner_callFunction},
   {(char*)"printStackTrace", (char*)"()V", (void *)jv8::V8Runner_printStackTrace}
 };
 

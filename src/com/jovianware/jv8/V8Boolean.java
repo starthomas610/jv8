@@ -1,6 +1,6 @@
 package com.jovianware.jv8;
 
-public class V8Boolean extends V8Value {
+class V8Boolean extends V8Value {
   
   private boolean val;
 

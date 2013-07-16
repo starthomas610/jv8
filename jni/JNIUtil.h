@@ -29,7 +29,7 @@ public:
                    m_V8Number_init_num,
                    m_V8Boolean_init_bool,
                    m_V8Function_init,
-                   m_V8MappableMethod_methodToRun,
+                   m_V8MappableMethod_runMethod,
                    m_V8Value_getTypeID;
 
   static jclass V8Runner_class,
@@ -38,6 +38,7 @@ public:
                 V8Number_class,
                 V8Boolean_class,
                 V8Function_class,
+                Function_class,
                 V8Undefined_class,
                 V8Exception_class,
                 V8MappableMethod_class;

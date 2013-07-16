@@ -34,8 +34,8 @@ public class V8Runner {
   private native long create();
   private native void dispose();
 
-  public native V8Value callFunction(V8Function function, V8Value[] args);
-  public native V8Value runJS(String name, String src) throws V8Exception;
+  private native V8Value callFunction(Function function, V8Value[] args) throws V8Exception;
+  private native V8Value runJS(String name, String src) throws V8Exception;
   public native void printStackTrace();
   
   public V8Value tryRunJS(String name, String src) {
@@ -44,6 +44,20 @@ public class V8Runner {
     } catch (V8Exception e) {
       return null;
     }
+  }
+
+  // TODO: Let jv8 do the casting job on the JNI side.
+  public Object temp_callFunction(Function function, Object[] args) throws V8Exception {
+    V8Value[] arguments = new V8Value[args.length];
+    for (int i=0; i<args.length; i++) {
+      arguments[i] = castToV8Value(args[i]);
+    }
+    return castToJavaObject(callFunction(function, arguments));
+  }
+
+  // TODO: Let jv8 do the casting job on the JNI side.
+  public Object temp_runJS(String name, String src) throws V8Exception {
+    return castToJavaObject(runJS(name, src));
   }
   
   @Override
@@ -56,5 +70,50 @@ public class V8Runner {
   private long handle;
   public V8Runner() {
     handle = create();
+  }
+
+  /**
+   * ============= TYPE CONVERSION ==========
+   */
+
+  public static V8Value castToV8Value( Object obj ) {
+    if( obj instanceof String ){
+      return new V8String( (String)obj );
+    }
+    if( obj instanceof Number ){
+      return new V8Number( ( (Number) obj ).doubleValue() );
+    }
+    if( obj instanceof Boolean ){
+      return new V8Boolean( ( (Boolean) obj ).booleanValue() );
+    }
+    if( obj instanceof V8Value ){
+      return (V8Value)obj;
+    }
+    if( obj == null ){
+      return null;
+    }
+    throw new RuntimeException("Invalid type for castToV8Value: "+ obj.getClass().toString());
+  }
+
+  public static Object castToJavaObject( V8Value value ) {
+    if (value == null) {
+      return null;
+    }
+    else if (value instanceof V8Boolean) {
+      return value.toBoolean();
+    }
+    else if (value instanceof V8String) {
+      return value.toString();
+    }
+    else if (value instanceof V8Number) {
+      return value.toNumber();
+    }
+    else if (value instanceof V8Function) {
+      return value;
+    }
+    else if (value instanceof V8Undefined) {
+      return value;
+    }
+    throw new RuntimeException("Invalid type for castToJavaObject: "+ value.getClass().toString());
   }
 }

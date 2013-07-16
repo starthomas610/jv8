@@ -9,11 +9,15 @@ public class V8Function extends V8Object {
   private long handle = 0;
   private long runnerHandle = 0;
 
+  protected V8Function(){
+
+  }
+
   /**
    * Constructs a function with a native JS Function pointer.
    * @param handle A pointer to Persistent<Function>
    */
-  private V8Function( long runnerHandle, long handle ){
+  protected V8Function( long runnerHandle, long handle ){
     this.runnerHandle = runnerHandle;
     this.handle = handle;
   }

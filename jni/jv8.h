@@ -98,8 +98,12 @@ cacheClassData(JNIEnv* env) {
   REQUIRE_FIELD(JNIUtil::V8Function_class, "handle", "J", JNIUtil::f_V8Function_handle)
   REQUIRE_FIELD(JNIUtil::V8Function_class, "runnerHandle", "J", JNIUtil::f_V8Function_runnerHandle)
 
+  // Function
+  REQUIRE_CLASS("com/jovianware/jv8/Function", JNIUtil::Function_class)
+
+  // V8MappableMethod
   REQUIRE_CLASS("com/jovianware/jv8/V8MappableMethod", JNIUtil::V8MappableMethod_class)
-  REQUIRE_METHOD(JNIUtil::V8MappableMethod_class, "methodToRun", "([Lcom/jovianware/jv8/V8Value;)Lcom/jovianware/jv8/V8Value;", JNIUtil::m_V8MappableMethod_methodToRun)
+  REQUIRE_METHOD(JNIUtil::V8MappableMethod_class, "runMethod", "([Lcom/jovianware/jv8/V8Value;)Lcom/jovianware/jv8/V8Value;", JNIUtil::m_V8MappableMethod_runMethod)
 
   JNIUtil::needsToCacheClassData = false;
 }

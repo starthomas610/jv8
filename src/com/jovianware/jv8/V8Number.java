@@ -1,6 +1,6 @@
 package com.jovianware.jv8;
 
-public class V8Number extends V8Value {
+class V8Number extends V8Value {
   private double val;
   
   public V8Number() {

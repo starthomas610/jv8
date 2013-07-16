@@ -25,7 +25,7 @@ jmethodID JNIUtil::m_V8String_init_str = NULL;
 jmethodID JNIUtil::m_V8Number_init_num = NULL;
 jmethodID JNIUtil::m_V8Boolean_init_bool = NULL;
 jmethodID JNIUtil::m_V8Function_init = NULL;
-jmethodID JNIUtil::m_V8MappableMethod_methodToRun = NULL;
+jmethodID JNIUtil::m_V8MappableMethod_runMethod = NULL;
 jmethodID JNIUtil::m_V8Value_getTypeID = NULL;
 
 // Classes
@@ -35,6 +35,7 @@ jclass JNIUtil::V8String_class = NULL;
 jclass JNIUtil::V8Number_class = NULL;
 jclass JNIUtil::V8Boolean_class = NULL;
 jclass JNIUtil::V8Function_class = NULL;
+jclass JNIUtil::Function_class = NULL;
 jclass JNIUtil::V8Undefined_class = NULL;
 jclass JNIUtil::V8Exception_class = NULL;
 jclass JNIUtil::V8MappableMethod_class = NULL;

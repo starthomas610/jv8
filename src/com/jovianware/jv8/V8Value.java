@@ -1,6 +1,6 @@
 package com.jovianware.jv8;
 
-public class V8Value {
+class V8Value {
   public static final int TYPE_UNDEFINED  = -1;
   public static final int TYPE_BOOLEAN    = 0;
   public static final int TYPE_NUMBER     = 1;
