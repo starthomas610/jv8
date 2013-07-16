@@ -174,11 +174,17 @@ namespace jv8 {
     JNIEnv* env,
     jobject jfunction
   ) {
+    Locker l(isolate);
+    Isolate::Scope isolateScope(isolate);
+
+    HandleScope handle_scope(isolate);
+    Context::Scope context_scope(context);
+
     jlong functionPointer = env->GetLongField(jfunction, JNIUtil::f_V8Function_handle);
     Persistent<Function> function = Persistent<Function>((Function*) functionPointer);
 
     // Release the JS function so it can be collected.
-    //function.Dispose();
+    function.Dispose(isolate);
     function.Clear();
   }
 
@@ -312,7 +318,6 @@ namespace jv8 {
 
     // Function
     else if( value->IsFunction()) {
-
       Persistent<Function> functionPersistent = Persistent<Function>::New(Handle<Function>::Cast(value));
       functionPersistent.MarkIndependent();
       wrappedReturnValue = env->NewObject(JNIUtil::Function_class,
