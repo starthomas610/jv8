@@ -151,10 +151,10 @@ registerCallback (const Arguments& args) {
 static JNINativeMethod V8Runner_Methods[] = {
   {(char*)"create", (char*)"()J", (void *) jv8::V8Runner_create},
   {(char*)"dispose", (char*)"()V", (void *) jv8::V8Runner_dispose},
-  {(char*)"native_runJS", (char*)"(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;", (void *) jv8::V8Runner_runJS},
+  {(char*)"runJS", (char*)"(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;", (void *) jv8::V8Runner_runJS},
   {(char*)"map", (char*)"(Ljava/lang/String;Lcom/jovianware/jv8/V8MappableMethod;)V", (void *) jv8::V8Runner_map},
   {(char*)"setDebuggingRunner", (char*)"(Lcom/jovianware/jv8/V8Runner;IZ)V", (void *) jv8::V8Runner_setDebuggingRunner},
-  {(char*)"native_callFunction", (char*)"(Lcom/jovianware/jv8/Function;[Ljava/lang/Object;)Ljava/lang/Object;", (void *)jv8::V8Runner_callFunction},
+  {(char*)"callFunction", (char*)"(Lcom/jovianware/jv8/Function;[Ljava/lang/Object;)Ljava/lang/Object;", (void *)jv8::V8Runner_callFunction},
   {(char*)"printStackTrace", (char*)"()V", (void *)jv8::V8Runner_printStackTrace}
 };
 

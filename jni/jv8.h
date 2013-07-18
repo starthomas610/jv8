@@ -71,7 +71,7 @@ cacheClassData(JNIEnv* env) {
 
   // V8MappableMethod
   REQUIRE_CLASS("com/jovianware/jv8/V8MappableMethod", JNIUtil::V8MappableMethod_class)
-  REQUIRE_METHOD(JNIUtil::V8MappableMethod_class, "runMethod", "([Ljava/lang/Object;)Ljava/lang/Object;", JNIUtil::m_V8MappableMethod_runMethod)
+  REQUIRE_METHOD(JNIUtil::V8MappableMethod_class, "methodToRun", "([Ljava/lang/Object;)Ljava/lang/Object;", JNIUtil::m_V8MappableMethod_runMethod)
 
   // Object
   REQUIRE_CLASS("java/lang/Object", JNIUtil::Object_class)
