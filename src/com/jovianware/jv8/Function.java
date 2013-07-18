@@ -23,7 +23,7 @@ public class Function extends V8Object {
   }
 
   /**
-   * Returns whether the V8Function is bound to a v8::Function yet
+   * @return Whether the V8Function is bound to a v8::Function yet
    * It can be false if we instantiate V8Function with a String
    * and that jv8 hasn't created the v8::Function yet.
    */

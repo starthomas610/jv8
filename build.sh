@@ -8,6 +8,7 @@ ANT_TARGET=debug
 ARCHITECTURES="arm,x86"
 INSTALL=false
 DEBUG=false
+DEBUG_RELEASE=false
 
 usage()
 {
@@ -20,6 +21,7 @@ Options:
   -s <v8_src>         The path to v8's project sourcetree's root. (default $V8_SRC_ROOT_DEFAULT)
   -a <archs>          Comma-separated build architectures.
                         Available architectures: arm, x86. (default $ARCHITECTURES)
+  -b                  Create a build release (symbolicated, with GDB)
   -n <ndk_dir>        The path to the Android NDK. (default \$ANDROID_NDK_ROOT)
   -t <toolchain_dir>  The path to the Android's toolchain binaries. (default \$ANDROID_TOOLCHAIN)
   -p <platform>       The Android SDK version to support (default $PLATFORM_VERSION)
@@ -60,11 +62,14 @@ function checkForErrors() {
     fi
 }
 
-while getopts "hs:a:n:t:p:j:id" OPTION; do
+while getopts "hs:ba:n:t:p:j:id" OPTION; do
   case $OPTION in
     h)
       usage
       exit
+      ;;
+    b)
+      DEBUG_RELEASE=true
       ;;
     s)
       V8_SRC_ROOT=$OPTARG
@@ -164,6 +169,11 @@ checkForErrors "Error copying v8 header files"
 
 msg "Building NDK libraries..."
 ABI=""
+if $DEBUG_RELEASE; then
+  NDK_DEBUG_VALUE=1
+else
+  NDK_DEBUG_VALUE=0
+fi
 for i in $(echo $ARCHITECTURES | tr "," "\n")
 do
   if [ "$i" == "arm" ]; then
@@ -171,7 +181,7 @@ do
   elif [ "$i" == "x86" ]; then
     ABI="$ABI x86"
   fi
-  NDK_DEBUG=1 $ANDROID_NDK_ROOT/ndk-build -j$NUM_CPUS V=1 "APP_ABI=$ABI"
+  NDK_DEBUG=$NDK_DEBUG_VALUE $ANDROID_NDK_ROOT/ndk-build -j$NUM_CPUS V=1 "APP_ABI=$ABI"
   checkForErrors "Error building NDK libraries (ABI=$ABI)"
 done
 
