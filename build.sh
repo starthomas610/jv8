@@ -134,7 +134,7 @@ do
   elif [ "$i" == "x86" ]; then
     TARGET="android_ia32.release"
   fi
-  make $TARGET -j$NUM_CPUS
+  make $TARGET -j$NUM_CPUS debuggersupport=on
   checkForErrors "Error building v8 (target=$TARGET)"
 done
 

@@ -36,7 +36,7 @@ namespace jv8 {
     void disposeFunction(JNIEnv* env, jobject jfunction);
 
     Handle<Value> v8ValueFromJObject (JNIEnv* env, jobject jobj);
-    jobject newV8Value (JNIEnv* env, Handle<Value> value);
+    jobject jObjectFromV8Value (JNIEnv* env, Handle<Value> value);
 
     void printStackTrace();
 

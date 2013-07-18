@@ -2,9 +2,9 @@ package com.jovianware.jv8;
 
 
 public class V8Runner {
-  private V8Value Undefined_;
-  public V8Value Undefined() {
-    return V8Undefined.instance;
+  private Undefined Undefined_;
+  public Undefined Undefined() {
+    return Undefined.instance;
   }
   
   static {
@@ -18,27 +18,15 @@ public class V8Runner {
   }
   
   public static native void setDebuggingRunner(V8Runner v8, int port, boolean waitForConnection);
-  
-  public V8Value val(String str) {
-    return new V8String(str);
-  }
-  
-  public V8Value val(double num) {
-    return new V8Number(num);
-  }
-  
-  public V8Value val(boolean bool) {
-    return new V8Boolean(bool);
-  }
-  
+
   private native long create();
   private native void dispose();
 
-  private native V8Value native_callFunction(Function function, V8Value[] args) throws V8Exception;
-  private native V8Value native_runJS(String name, String src) throws V8Exception;
+  private native Object native_callFunction(Function function, Object[] args) throws V8Exception;
+  private native Object native_runJS(String name, String src) throws V8Exception;
   public native void printStackTrace();
   
-  public V8Value tryRunJS(String name, String src) {
+  public Object tryRunJS(String name, String src) {
     try {
       return native_runJS(name, src);
     } catch (V8Exception e) {
@@ -48,16 +36,12 @@ public class V8Runner {
 
   // TODO: Let jv8 do the casting job on the JNI side.
   public Object callFunction(Function function, Object[] args) throws V8Exception {
-    V8Value[] arguments = new V8Value[args.length];
-    for (int i=0; i<args.length; i++) {
-      arguments[i] = castToV8Value(args[i]);
-    }
-    return castToJavaObject(native_callFunction(function, arguments));
+    return native_callFunction(function, args);
   }
 
   // TODO: Let jv8 do the casting job on the JNI side.
   public Object runJS(String name, String src) throws V8Exception {
-    return castToJavaObject(native_runJS(name, src));
+    return native_runJS(name, src);
   }
   
   @Override
@@ -76,6 +60,7 @@ public class V8Runner {
    * ============= TYPE CONVERSION ==========
    */
 
+  /*
   public static V8Value castToV8Value( Object obj ) {
     if( obj instanceof String ){
       return new V8String( (String)obj );
@@ -116,4 +101,5 @@ public class V8Runner {
     }
     throw new RuntimeException("Invalid type for castToJavaObject: "+ value.getClass().toString());
   }
+  */
 }

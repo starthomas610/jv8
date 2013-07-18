@@ -115,7 +115,7 @@ namespace jv8 {
       return NULL;
     }
 
-    return newV8Value(env, result);
+    return jObjectFromV8Value(env, result);
   }
 
   jobject V8Runner::callFunction (
@@ -139,7 +139,7 @@ namespace jv8 {
       cacheClassData(env);
     }
 
-    jlong functionPointer = env->GetLongField(jfunction, JNIUtil::f_V8Function_handle);
+    jlong functionPointer = env->GetLongField(jfunction, JNIUtil::f_Function_handle);
     Persistent<Function> function = Persistent<Function>((Function*) functionPointer);
 
     if( function.IsEmpty() || *function == NULL ){
@@ -164,7 +164,7 @@ namespace jv8 {
       return NULL;
     }
 
-    return newV8Value(env, returnedJSValue);
+    return jObjectFromV8Value(env, returnedJSValue);
   }
 
   /**
@@ -180,7 +180,7 @@ namespace jv8 {
     HandleScope handle_scope(isolate);
     Context::Scope context_scope(context);
 
-    jlong functionPointer = env->GetLongField(jfunction, JNIUtil::f_V8Function_handle);
+    jlong functionPointer = env->GetLongField(jfunction, JNIUtil::f_Function_handle);
     Persistent<Function> function = Persistent<Function>((Function*) functionPointer);
 
     // Release the JS function so it can be collected.
@@ -223,41 +223,31 @@ namespace jv8 {
       return Null();
     }
 
-    jint jobjType = env->CallIntMethod(jobj, JNIUtil::m_V8Value_getTypeID);
     Handle<Value> returnVal;
 
     // Number
-    if (jobjType == JNIUtil::V8VALUE_TYPE_NUMBER) {
-      jdouble num = env->GetDoubleField(jobj, JNIUtil::f_V8Number_val);
-    
-      returnVal = Number::New(num);
-    
+    if (env->IsInstanceOf(jobj, JNIUtil::Number_class)) {
+      jdouble num = env->CallDoubleMethod(jobj, JNIUtil::m_Number_doubleValue);    
+      returnVal = Number::New(num);    
     }
 
     // Boolean
-    else if (jobjType == JNIUtil::V8VALUE_TYPE_BOOLEAN) {
-      jboolean b = env->GetBooleanField(jobj, JNIUtil::f_V8Boolean_val);
-    
+    else if (env->IsInstanceOf(jobj, JNIUtil::Boolean_class)) {
+      jboolean b = env->CallBooleanMethod(jobj, JNIUtil::m_Boolean_booleanValue);    
       returnVal = Boolean::New(b);
     }
 
     // String
-    else if (jobjType == JNIUtil::V8VALUE_TYPE_STRING) {
-      jstring jstr = (jstring) env->GetObjectField(jobj, JNIUtil::f_V8String_val);
-      if (jstr == NULL) {
-        returnVal = Null();
-      }
-      else {
-        const char* str = env->GetStringUTFChars(jstr, 0);
-        returnVal = String::New(str);
-        env->ReleaseStringUTFChars(jstr, str);
-        env->DeleteLocalRef(jstr);
-      }      
+    else if (env->IsInstanceOf(jobj, JNIUtil::String_class)) {
+      jstring jstr = (jstring)jobj;
+      const char* str = env->GetStringUTFChars(jstr, 0);
+      returnVal = String::New(str);
+      env->ReleaseStringUTFChars(jstr, str);
     }
 
     // Function
-    else if (jobjType == JNIUtil::V8VALUE_TYPE_FUNCTION) {
-      jlong functionPointer = env->GetLongField(jobj, JNIUtil::f_V8Function_handle);
+    else if (env->IsInstanceOf(jobj, JNIUtil::Function_class)) {
+      jlong functionPointer = env->GetLongField(jobj, JNIUtil::f_Function_handle);
       v8::Handle<v8::Function>(reinterpret_cast<v8::Function*>(functionPointer));
     }
 
@@ -270,7 +260,7 @@ namespace jv8 {
   }
 
   jobject
-  V8Runner::newV8Value (
+  V8Runner::jObjectFromV8Value (
     JNIEnv* env,
     Handle<Value> value
   ) {
@@ -289,28 +279,21 @@ namespace jv8 {
 
     // Number
     if (value->IsNumber()) {
-      wrappedReturnValue = env->NewObject(JNIUtil::V8Number_class,
-        JNIUtil::m_V8Number_init_num,
+      wrappedReturnValue = env->NewObject(JNIUtil::Double_class,
+        JNIUtil::m_Double_init_double,
         value->NumberValue()
       );
     }
 
     // String
     else if (value->IsString()) {
-      jstring jstr = env->NewStringUTF( *String::Utf8Value(value->ToString()) );
-      
-      wrappedReturnValue = env->NewObject(JNIUtil::V8String_class,
-        JNIUtil::m_V8String_init_str,
-        jstr
-      );
-
-      env->DeleteLocalRef(jstr);
+      wrappedReturnValue = env->NewStringUTF( *String::Utf8Value(value->ToString()) );
     }
 
     // Boolean
     else if (value->IsBoolean()) {
-      wrappedReturnValue = env->NewObject(JNIUtil::V8Boolean_class,
-        JNIUtil::m_V8Boolean_init_bool,
+      wrappedReturnValue = env->NewObject(JNIUtil::Boolean_class,
+        JNIUtil::m_Boolean_init_bool,
         value->BooleanValue()
       );
 
@@ -321,7 +304,7 @@ namespace jv8 {
       Persistent<Function> functionPersistent = Persistent<Function>::New(Handle<Function>::Cast(value));
       functionPersistent.MarkIndependent();
       wrappedReturnValue = env->NewObject(JNIUtil::Function_class,
-        JNIUtil::m_V8Function_init,
+        JNIUtil::m_Function_init,
         (jlong)this,
         (jlong)*functionPersistent
       );
@@ -329,7 +312,7 @@ namespace jv8 {
 
     // Undefined
     else if( value->IsUndefined()) {
-      wrappedReturnValue = env->GetStaticObjectField(JNIUtil::V8Undefined_class, JNIUtil::sf_V8Undefined_instance);
+      wrappedReturnValue = env->GetStaticObjectField(JNIUtil::Undefined_class, JNIUtil::sf_Undefined_instance);
     }
 
     // null
@@ -342,6 +325,7 @@ namespace jv8 {
       std::string jsType(std::string(*String::Utf8Value(value->ToString())));
 
       __android_log_print(ANDROID_LOG_WARN, "jv8", "JS=>Java: Unsupported JS type detected: %s", jsType.c_str());
+      printStackTrace();
       wrappedReturnValue = NULL;
     }
 
@@ -365,6 +349,7 @@ namespace jv8 {
 
   void V8Runner::initRemoteDebugging (int port, bool waitForConnection) {
     if (!debuggingInitialized) {
+      __android_log_print(ANDROID_LOG_INFO, "jv8", "Initting debugger on port %d", port);
       Debug::SetDebugMessageDispatchHandler(dispatchDebugMessages, true);
       // TODO: Allow specification of port and whether you want to wait for
       //        the debugger to attach.

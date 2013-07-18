@@ -59,61 +59,42 @@ cacheClassData(JNIEnv* env) {
 
   __android_log_print(ANDROID_LOG_INFO, "jv8", "Caching JNI methods");
 
-  REQUIRE_CLASS("com/jovianware/jv8/V8Value", JNIUtil::V8Value_class)
-  REQUIRE_METHOD(JNIUtil::V8Value_class, "getTypeID", "()I", JNIUtil::m_V8Value_getTypeID)
-  REQUIRE_STATIC_FIELD(JNIUtil::V8Value_class, "TYPE_BOOLEAN", "I", JNIUtil::sf_V8Value_TYPE_BOOLEAN)
-  REQUIRE_STATIC_FIELD(JNIUtil::V8Value_class, "TYPE_NUMBER", "I", JNIUtil::sf_V8Value_TYPE_NUMBER)
-  REQUIRE_STATIC_FIELD(JNIUtil::V8Value_class, "TYPE_STRING", "I", JNIUtil::sf_V8Value_TYPE_STRING)
-  REQUIRE_STATIC_FIELD(JNIUtil::V8Value_class, "TYPE_FUNCTION", "I", JNIUtil::sf_V8Value_TYPE_FUNCTION)
-  REQUIRE_STATIC_FIELD(JNIUtil::V8Value_class, "TYPE_UNDEFINED", "I", JNIUtil::sf_V8Value_TYPE_UNDEFINED)
-
-  JNIUtil::V8VALUE_TYPE_BOOLEAN = env->GetStaticIntField(JNIUtil::V8Value_class, JNIUtil::sf_V8Value_TYPE_BOOLEAN);
-  JNIUtil::V8VALUE_TYPE_NUMBER = env->GetStaticIntField(JNIUtil::V8Value_class, JNIUtil::sf_V8Value_TYPE_NUMBER);
-  JNIUtil::V8VALUE_TYPE_STRING = env->GetStaticIntField(JNIUtil::V8Value_class, JNIUtil::sf_V8Value_TYPE_STRING);
-  JNIUtil::V8VALUE_TYPE_FUNCTION = env->GetStaticIntField(JNIUtil::V8Value_class, JNIUtil::sf_V8Value_TYPE_FUNCTION);
-  JNIUtil::V8VALUE_TYPE_UNDEFINED = env->GetStaticIntField(JNIUtil::V8Value_class, JNIUtil::sf_V8Value_TYPE_UNDEFINED);
-
-  // V8String
-  REQUIRE_CLASS("com/jovianware/jv8/V8String", JNIUtil::V8String_class)
-  REQUIRE_METHOD(JNIUtil::V8String_class, "<init>", "(Ljava/lang/String;)V", JNIUtil::m_V8String_init_str)
-  REQUIRE_FIELD(JNIUtil::V8String_class, "val", "Ljava/lang/String;", JNIUtil::f_V8String_val)
-
-  // V8Undefined
-  REQUIRE_CLASS("com/jovianware/jv8/V8Undefined", JNIUtil::V8Undefined_class)
-  REQUIRE_STATIC_FIELD(JNIUtil::V8Undefined_class, "instance", "Lcom/jovianware/jv8/V8Undefined;", JNIUtil::sf_V8Undefined_instance)
-
-  // V8Number
-  REQUIRE_CLASS("com/jovianware/jv8/V8Number", JNIUtil::V8Number_class)
-  REQUIRE_METHOD(JNIUtil::V8Number_class, "<init>", "(D)V", JNIUtil::m_V8Number_init_num)
-  REQUIRE_FIELD(JNIUtil::V8Number_class, "val", "D", JNIUtil::f_V8Number_val)
-
-  // V8Boolean
-  REQUIRE_CLASS("com/jovianware/jv8/V8Boolean", JNIUtil::V8Boolean_class)
-  REQUIRE_METHOD(JNIUtil::V8Boolean_class, "<init>", "(Z)V", JNIUtil::m_V8Boolean_init_bool)
-  REQUIRE_FIELD(JNIUtil::V8Boolean_class, "val", "Z", JNIUtil::f_V8Boolean_val)
-
-  // V8Function
-  REQUIRE_CLASS("com/jovianware/jv8/V8Function", JNIUtil::V8Function_class)
-  REQUIRE_METHOD(JNIUtil::V8Function_class, "<init>", "(JJ)V", JNIUtil::m_V8Function_init)
-  REQUIRE_FIELD(JNIUtil::V8Function_class, "handle", "J", JNIUtil::f_V8Function_handle)
-  REQUIRE_FIELD(JNIUtil::V8Function_class, "runnerHandle", "J", JNIUtil::f_V8Function_runnerHandle)
+  // Undefined
+  REQUIRE_CLASS("com/jovianware/jv8/Undefined", JNIUtil::Undefined_class)
+  REQUIRE_STATIC_FIELD(JNIUtil::Undefined_class, "instance", "Lcom/jovianware/jv8/Undefined;", JNIUtil::sf_Undefined_instance)
 
   // Function
   REQUIRE_CLASS("com/jovianware/jv8/Function", JNIUtil::Function_class)
+  REQUIRE_METHOD(JNIUtil::Function_class, "<init>", "(JJ)V", JNIUtil::m_Function_init)
+  REQUIRE_FIELD(JNIUtil::Function_class, "handle", "J", JNIUtil::f_Function_handle)
+  REQUIRE_FIELD(JNIUtil::Function_class, "runnerHandle", "J", JNIUtil::f_Function_runnerHandle)
 
   // V8MappableMethod
   REQUIRE_CLASS("com/jovianware/jv8/V8MappableMethod", JNIUtil::V8MappableMethod_class)
-  REQUIRE_METHOD(JNIUtil::V8MappableMethod_class, "runMethod", "([Lcom/jovianware/jv8/V8Value;)Lcom/jovianware/jv8/V8Value;", JNIUtil::m_V8MappableMethod_runMethod)
+  REQUIRE_METHOD(JNIUtil::V8MappableMethod_class, "runMethod", "([Ljava/lang/Object;)Ljava/lang/Object;", JNIUtil::m_V8MappableMethod_runMethod)
+
+  // Object
+  REQUIRE_CLASS("java/lang/Object", JNIUtil::Object_class)
+
+  // String
+  REQUIRE_CLASS("java/lang/String", JNIUtil::String_class)
+  REQUIRE_METHOD(JNIUtil::String_class, "<init>", "(Ljava/lang/String;)V", JNIUtil::m_String_init_str)
+
+  // Boolean
+  REQUIRE_CLASS("java/lang/Boolean", JNIUtil::Boolean_class)
+  REQUIRE_METHOD(JNIUtil::Boolean_class, "<init>", "(Z)V", JNIUtil::m_Boolean_init_bool)
+  REQUIRE_METHOD(JNIUtil::Boolean_class, "booleanValue", "()Z", JNIUtil::m_Boolean_booleanValue)
+
+  // Number
+  REQUIRE_CLASS("java/lang/Number", JNIUtil::Number_class)
+  REQUIRE_METHOD(JNIUtil::Number_class, "doubleValue", "()D", JNIUtil::m_Number_doubleValue)
+
+  // Double
+  REQUIRE_CLASS("java/lang/Double", JNIUtil::Double_class)
+  REQUIRE_METHOD(JNIUtil::Double_class, "<init>", "(D)V", JNIUtil::m_Double_init_double)
 
   JNIUtil::needsToCacheClassData = false;
 }
-
-jobject
-newV8Value (
-  JNIEnv* env,
-  V8Runner* runner,
-  Handle<Value> value
-);
 
 Handle<Value>
 registerCallback (const Arguments& args);

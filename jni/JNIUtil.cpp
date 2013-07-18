@@ -6,46 +6,36 @@ namespace jv8 {
 
 // Fields
 jfieldID JNIUtil::f_V8Runner_handle = NULL;
-jfieldID JNIUtil::f_V8Function_handle = NULL;
-jfieldID JNIUtil::f_V8Function_runnerHandle = NULL;
-jfieldID JNIUtil::f_V8Boolean_val = NULL;
-jfieldID JNIUtil::f_V8Number_val = NULL;
-jfieldID JNIUtil::f_V8String_val = NULL;
+jfieldID JNIUtil::f_Function_handle = NULL;
+jfieldID JNIUtil::f_Function_runnerHandle = NULL;
 
 // Static fields
-jfieldID JNIUtil::sf_V8Undefined_instance = NULL;
-jfieldID JNIUtil::sf_V8Value_TYPE_BOOLEAN = NULL;
-jfieldID JNIUtil::sf_V8Value_TYPE_NUMBER = NULL;
-jfieldID JNIUtil::sf_V8Value_TYPE_STRING = NULL;
-jfieldID JNIUtil::sf_V8Value_TYPE_FUNCTION = NULL;
-jfieldID JNIUtil::sf_V8Value_TYPE_UNDEFINED;
+jfieldID JNIUtil::sf_Undefined_instance = NULL;
 
-// Methods
-jmethodID JNIUtil::m_V8String_init_str = NULL;
-jmethodID JNIUtil::m_V8Number_init_num = NULL;
-jmethodID JNIUtil::m_V8Boolean_init_bool = NULL;
-jmethodID JNIUtil::m_V8Function_init = NULL;
+// jv8 Methods
+jmethodID JNIUtil::m_Function_init = NULL;
 jmethodID JNIUtil::m_V8MappableMethod_runMethod = NULL;
-jmethodID JNIUtil::m_V8Value_getTypeID = NULL;
 
-// Classes
+// jv8 Classes
 jclass JNIUtil::V8Runner_class = NULL;
-jclass JNIUtil::V8Value_class = NULL;
-jclass JNIUtil::V8String_class = NULL;
-jclass JNIUtil::V8Number_class = NULL;
-jclass JNIUtil::V8Boolean_class = NULL;
-jclass JNIUtil::V8Function_class = NULL;
 jclass JNIUtil::Function_class = NULL;
-jclass JNIUtil::V8Undefined_class = NULL;
+jclass JNIUtil::Undefined_class = NULL;
 jclass JNIUtil::V8Exception_class = NULL;
 jclass JNIUtil::V8MappableMethod_class = NULL;
 
-// Types
-int JNIUtil::V8VALUE_TYPE_BOOLEAN = 0;
-int JNIUtil::V8VALUE_TYPE_NUMBER = 0;
-int JNIUtil::V8VALUE_TYPE_STRING = 0;
-int JNIUtil::V8VALUE_TYPE_FUNCTION = 0;
-int JNIUtil::V8VALUE_TYPE_UNDEFINED = 0;
+// Native methods
+jmethodID JNIUtil::m_String_init_str = NULL;
+jmethodID JNIUtil::m_Boolean_init_bool = NULL;
+jmethodID JNIUtil::m_Double_init_double = NULL;
+jmethodID JNIUtil::m_Number_doubleValue = NULL;
+jmethodID JNIUtil::m_Boolean_booleanValue = NULL;
+
+// Native classes
+jclass JNIUtil::Object_class = NULL;
+jclass JNIUtil::String_class = NULL;
+jclass JNIUtil::Boolean_class = NULL;
+jclass JNIUtil::Number_class = NULL;
+jclass JNIUtil::Double_class = NULL;
 
 // Misc
 bool JNIUtil::needsToCacheClassData = true;

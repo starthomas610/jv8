@@ -95,7 +95,7 @@ static void V8Runner_disposeFunction(
     cacheClassData(env);
   }
 
-  V8Runner* runner = (V8Runner*) env->GetLongField(jfunction, JNIUtil::f_V8Function_runnerHandle);
+  V8Runner* runner = (V8Runner*) env->GetLongField(jfunction, JNIUtil::f_Function_runnerHandle);
   runner->disposeFunction(env, jfunction);
 }
 
@@ -125,10 +125,9 @@ registerCallback (const Arguments& args) {
   }
 
   jobject methodObject = data->methodObject;
-
-  jobjectArray jargs = (jobjectArray) env->NewObjectArray(args.Length(), JNIUtil::V8Value_class, NULL);
+  jobjectArray jargs = (jobjectArray) env->NewObjectArray(args.Length(), JNIUtil::Object_class, NULL);
   for (int i=0; i<args.Length(); ++i) {
-    jobject wrappedArg = data->runner->newV8Value(env, args[i]);
+    jobject wrappedArg = data->runner->jObjectFromV8Value(env, args[i]);
 
     env->SetObjectArrayElement(jargs, i, wrappedArg);
     env->DeleteLocalRef(wrappedArg);
@@ -152,14 +151,14 @@ registerCallback (const Arguments& args) {
 static JNINativeMethod V8Runner_Methods[] = {
   {(char*)"create", (char*)"()J", (void *) jv8::V8Runner_create},
   {(char*)"dispose", (char*)"()V", (void *) jv8::V8Runner_dispose},
-  {(char*)"native_runJS", (char*)"(Ljava/lang/String;Ljava/lang/String;)Lcom/jovianware/jv8/V8Value;", (void *) jv8::V8Runner_runJS},
+  {(char*)"native_runJS", (char*)"(Ljava/lang/String;Ljava/lang/String;)Ljava/lang/Object;", (void *) jv8::V8Runner_runJS},
   {(char*)"map", (char*)"(Ljava/lang/String;Lcom/jovianware/jv8/V8MappableMethod;)V", (void *) jv8::V8Runner_map},
   {(char*)"setDebuggingRunner", (char*)"(Lcom/jovianware/jv8/V8Runner;IZ)V", (void *) jv8::V8Runner_setDebuggingRunner},
-  {(char*)"native_callFunction", (char*)"(Lcom/jovianware/jv8/Function;[Lcom/jovianware/jv8/V8Value;)Lcom/jovianware/jv8/V8Value;", (void *)jv8::V8Runner_callFunction},
+  {(char*)"native_callFunction", (char*)"(Lcom/jovianware/jv8/Function;[Ljava/lang/Object;)Ljava/lang/Object;", (void *)jv8::V8Runner_callFunction},
   {(char*)"printStackTrace", (char*)"()V", (void *)jv8::V8Runner_printStackTrace}
 };
 
-static JNINativeMethod V8Function_Methods[] = {
+static JNINativeMethod Function_Methods[] = {
   {(char*)"dispose", (char*)"()V", (void *) jv8::V8Runner_disposeFunction}
 };
 
@@ -221,8 +220,8 @@ jint JNI_OnLoad (
   FIELD("handle", "J", jv8::JNIUtil::f_V8Runner_handle)
   CLASS_END()
 
-  CLASS("com/jovianware/jv8/V8Function", jv8::JNIUtil::V8Function_class)
-  MTABLE(V8Function_Methods)
+  CLASS("com/jovianware/jv8/Function", jv8::JNIUtil::Function_class)
+  MTABLE(Function_Methods)
   CLASS_END()
 
   CLASS("com/jovianware/jv8/V8Exception", jv8::JNIUtil::V8Exception_class)

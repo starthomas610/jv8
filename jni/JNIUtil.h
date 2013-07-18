@@ -13,45 +13,35 @@ namespace jv8 {
 class JNIUtil {
 public:
   static jfieldID f_V8Runner_handle,
-                  f_V8Function_handle,
-                  f_V8Function_runnerHandle,
-                  f_V8Boolean_val,
-                  f_V8Number_val,
-                  f_V8String_val,
-                  sf_V8Undefined_instance,
-                  sf_V8Value_TYPE_BOOLEAN,
-                  sf_V8Value_TYPE_NUMBER,
-                  sf_V8Value_TYPE_STRING,
-                  sf_V8Value_TYPE_FUNCTION,
-                  sf_V8Value_TYPE_UNDEFINED;
+                  f_Function_handle,
+                  f_Function_runnerHandle,
+                  sf_Undefined_instance;
 
-  static jmethodID m_V8String_init_str,
-                   m_V8Number_init_num,
-                   m_V8Boolean_init_bool,
-                   m_V8Function_init,
-                   m_V8MappableMethod_runMethod,
-                   m_V8Value_getTypeID;
+  static jmethodID m_Function_init,
+                   m_V8MappableMethod_runMethod;
 
   static jclass V8Runner_class,
-                V8Value_class,
-                V8String_class,
-                V8Number_class,
-                V8Boolean_class,
                 V8Function_class,
                 Function_class,
-                V8Undefined_class,
+                Undefined_class,
                 V8Exception_class,
                 V8MappableMethod_class;
 
+  static jmethodID m_String_init_str,
+                   m_Boolean_init_bool,
+                   m_Double_init_double,
+                   m_Boolean_booleanValue,
+                   m_Number_doubleValue;
+
+  static jclass Object_class,
+                String_class,
+                Number_class,
+                Double_class,
+                Boolean_class;
+
   static bool needsToCacheClassData;
   static JavaVM* javaVM;
-
-  static int V8VALUE_TYPE_BOOLEAN,
-             V8VALUE_TYPE_NUMBER,
-             V8VALUE_TYPE_STRING,
-             V8VALUE_TYPE_FUNCTION,
-             V8VALUE_TYPE_UNDEFINED;
-
+  
 };
 
 }
