@@ -23,17 +23,6 @@ public class Function extends V8Object {
   }
 
   /**
-   * Calls the JS function with args as arguments.
-   *
-   * @param args
-   *
-   * @return null
-   */
-  public V8Value call(V8Value[] args) {
-    return null;
-  }
-
-  /**
    * Returns whether the V8Function is bound to a v8::Function yet
    * It can be false if we instantiate V8Function with a String
    * and that jv8 hasn't created the v8::Function yet.
@@ -47,18 +36,7 @@ public class Function extends V8Object {
    */
   native protected void dispose();
 
-  @Override
   protected void finalize() throws Throwable {
     dispose();
-  }
-
-  @Override
-  public boolean isFunction(){
-    return true;
-  }
-
-  @Override
-  public int getTypeID() {
-    return V8Value.TYPE_FUNCTION;
   }
 }
