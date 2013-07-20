@@ -34,7 +34,10 @@ namespace jv8 {
   }
 
   void V8Runner::mapMethod (JNIEnv* env,  jobject v8MappableMethod, const char* name) {
+
+#ifdef __ANDROID__
     __android_log_print(ANDROID_LOG_INFO, "jv8", "Mapping method %s", name);
+#endif
 
     Locker l(isolate);
     Isolate::Scope isolateScope(isolate);
@@ -49,10 +52,8 @@ namespace jv8 {
     env->GetJavaVM(&data->jvm);
     methodDatas.push_back(data);
 
-    //context->DetachGlobal();
     Handle<Object> global = context->Global();
     global->Set(String::New(name), FunctionTemplate::New(&registerCallback, External::New(data))->GetFunction());
-    //context->ReattachGlobal(global);
   }
 
   Handle<Value> V8Runner::callFunction(Handle<Function> function, std::vector<Handle<Value> > args) {
@@ -125,7 +126,11 @@ namespace jv8 {
   ) {
 
     if( jfunction == NULL ){
+
+#ifdef __ANDROID__
       __android_log_print(ANDROID_LOG_INFO, "jv8", "callFunction called with `jfunction == NULL`. Returning NULL.");
+#endif
+
       return NULL;
     }
 
@@ -143,7 +148,11 @@ namespace jv8 {
     Persistent<Function> function = Persistent<Function>((Function*) functionPointer);
 
     if( function.IsEmpty() || *function == NULL ){
+
+#ifdef __ANDROID__
       __android_log_print(ANDROID_LOG_INFO, "jv8", "callFunction called with `function == NULL`. Returning NULL.");
+#endif
+
       return NULL;
     }
 
@@ -202,7 +211,11 @@ namespace jv8 {
                       << ")"
                       << "\n";
     }
-    __android_log_print(ANDROID_LOG_INFO, "jv8", "Current stack trace:\n%s", stackTraceString.str().c_str());\
+
+#ifdef __ANDROID__
+    __android_log_print(ANDROID_LOG_INFO, "jv8", "Current stack trace:\n%s", stackTraceString.str().c_str());
+#endif
+
   }
 
   /**
@@ -272,7 +285,11 @@ namespace jv8 {
 
     // Check whether we have an empty handle.
     if( value.IsEmpty() ){
+
+#ifdef __ANDROID__
       __android_log_write(ANDROID_LOG_WARN, "jv8", "JS=>Java: Empty value provided. Defaulting to null.");
+#endif
+
       printStackTrace();
       return NULL;
     }
@@ -324,7 +341,10 @@ namespace jv8 {
     else {
       std::string jsType(std::string(*String::Utf8Value(value->ToString())));
 
+#ifdef __ANDROID__
       __android_log_print(ANDROID_LOG_WARN, "jv8", "JS=>Java: Unsupported JS type detected: %s", jsType.c_str());
+#endif
+
       printStackTrace();
       wrappedReturnValue = NULL;
     }
@@ -349,10 +369,12 @@ namespace jv8 {
 
   void V8Runner::initRemoteDebugging (int port, bool waitForConnection) {
     if (!debuggingInitialized) {
+
+#ifdef __ANDROID__
       __android_log_print(ANDROID_LOG_INFO, "jv8", "Initting debugger on port %d", port);
+#endif
+      
       Debug::SetDebugMessageDispatchHandler(dispatchDebugMessages, true);
-      // TODO: Allow specification of port and whether you want to wait for
-      //        the debugger to attach.
       Debug::EnableAgent("jv8", port, waitForConnection);
       debuggingInitialized = true;
     }

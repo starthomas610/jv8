@@ -57,7 +57,9 @@ struct MappableMethodData {
 static inline void
 cacheClassData(JNIEnv* env) {
 
+#ifdef __ANDROID__
   __android_log_print(ANDROID_LOG_INFO, "jv8", "Caching JNI methods");
+#endif
 
   // Undefined
   REQUIRE_CLASS("com/jovianware/jv8/Undefined", JNIUtil::Undefined_class)
