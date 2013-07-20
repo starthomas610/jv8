@@ -8,16 +8,22 @@
 #include <string>
 #include <sstream>
 
-using namespace std;
-
 #include <v8.h>
-using namespace v8;
 
 #include "V8Runner.h"
 #include "jv8.h"
 #include "JNIUtil.h"
 
-namespace jv8 {
+using namespace std;
+using namespace v8;
+
+struct MappableMethodData {
+  jobject methodObject;
+  jv8::V8Runner* runner;
+  JavaVM* jvm;
+};
+
+namespace jv8 {  
 
   Isolate* V8Runner::dbg_isolate;
   Handle<Context> V8Runner::dbg_context;
@@ -53,7 +59,7 @@ namespace jv8 {
     methodDatas.push_back(data);
 
     Handle<Object> global = context->Global();
-    global->Set(String::New(name), FunctionTemplate::New(&registerCallback, External::New(data))->GetFunction());
+    global->Set(String::New(name), FunctionTemplate::New(&onMappableMethodCalled, External::New(data))->GetFunction());
   }
 
   Handle<Value> V8Runner::callFunction(Handle<Function> function, std::vector<Handle<Value> > args) {
@@ -216,6 +222,45 @@ namespace jv8 {
     __android_log_print(ANDROID_LOG_INFO, "jv8", "Current stack trace:\n%s", stackTraceString.str().c_str());
 #endif
 
+  }
+
+  Handle<Value>
+  V8Runner::onMappableMethodCalled (const Arguments& args) {
+    Isolate* isolate = args.GetIsolate();
+
+    Locker l(isolate);
+    Isolate::Scope isolateScope(isolate);
+
+    HandleScope handle_scope(isolate);
+
+    MappableMethodData* data = (MappableMethodData*) External::Cast(*args.Data())->Value();
+    JNIEnv* env;
+    JNIUtil::javaVM->AttachCurrentThread(&env, NULL);
+    
+    if (JNIUtil::needsToCacheClassData) {
+      cacheClassData(env);
+    }
+
+    jobject methodObject = data->methodObject;
+    jobjectArray jargs = (jobjectArray) env->NewObjectArray(args.Length(), JNIUtil::Object_class, NULL);
+    for (int i=0; i<args.Length(); ++i) {
+      jobject wrappedArg = data->runner->jObjectFromV8Value(env, args[i]);
+
+      env->SetObjectArrayElement(jargs, i, wrappedArg);
+      env->DeleteLocalRef(wrappedArg);
+    }
+
+    Handle<Value> returnVal;
+
+    jobject jresult = env->CallObjectMethod(methodObject, JNIUtil::m_V8MappableMethod_runMethod, jargs);
+
+    env->DeleteLocalRef(jargs);
+
+    returnVal = data->runner->v8ValueFromJObject(env, jresult);
+
+    env->DeleteLocalRef(jresult);
+
+    return returnVal; // TODO
   }
 
   /**

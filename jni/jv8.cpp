@@ -6,11 +6,12 @@
 #endif
 
 #include <v8.h>
-using namespace v8;
 
 #include "jv8.h"
 #include "V8Runner.h"
 #include "JNIUtil.h"
+
+using namespace v8;
 
 // TODO: Integrate this in with build system:
 //#define NDK_GDB_ENTRYPOINT_WAIT_HACK
@@ -105,45 +106,6 @@ static void V8Runner_printStackTrace (
 ) {
   V8Runner* runner = (V8Runner*) env->GetLongField(jrunner, JNIUtil::f_V8Runner_handle);
   runner->printStackTrace();
-}
-
-Handle<Value>
-registerCallback (const Arguments& args) {
-  Isolate* isolate = args.GetIsolate();
-
-  Locker l(isolate);
-  Isolate::Scope isolateScope(isolate);
-
-  HandleScope handle_scope(isolate);
-
-  MappableMethodData* data = (MappableMethodData*) External::Cast(*args.Data())->Value();
-  JNIEnv* env;
-  JNIUtil::javaVM->AttachCurrentThread(&env, NULL);
-  
-  if (JNIUtil::needsToCacheClassData) {
-    cacheClassData(env);
-  }
-
-  jobject methodObject = data->methodObject;
-  jobjectArray jargs = (jobjectArray) env->NewObjectArray(args.Length(), JNIUtil::Object_class, NULL);
-  for (int i=0; i<args.Length(); ++i) {
-    jobject wrappedArg = data->runner->jObjectFromV8Value(env, args[i]);
-
-    env->SetObjectArrayElement(jargs, i, wrappedArg);
-    env->DeleteLocalRef(wrappedArg);
-  }
-
-  Handle<Value> returnVal;
-
-  jobject jresult = env->CallObjectMethod(methodObject, JNIUtil::m_V8MappableMethod_runMethod, jargs);
-
-  env->DeleteLocalRef(jargs);
-
-  returnVal = data->runner->v8ValueFromJObject(env, jresult);
-
-  env->DeleteLocalRef(jresult);
-
-  return returnVal; // TODO
 }
 
 } // namespace jv8

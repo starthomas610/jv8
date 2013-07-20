@@ -1,15 +1,19 @@
 #ifndef V8RUNNER_H_
 #define V8RUNNER_H_
 #include <vector>
-using namespace std;
 
 #include <jni.h>
 
 #include <v8.h>
 #include <v8-debug.h>
-using namespace v8;
 
 #include "jv8.h"
+
+using namespace std;
+using namespace v8;
+
+struct MappableMethodData;
+
 namespace jv8 {
 
   class V8Runner {
@@ -39,6 +43,8 @@ namespace jv8 {
     jobject jObjectFromV8Value (JNIEnv* env, Handle<Value> value);
 
     void printStackTrace();
+
+    static Handle<Value> onMappableMethodCalled (const Arguments& args);
 
     // Debugger
     static void setDebuggingRunner (V8Runner* runner, int port, bool waitForConnection);

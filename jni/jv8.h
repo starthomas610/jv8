@@ -7,6 +7,7 @@
 #endif
 
 #include <v8.h>
+
 using namespace v8;
 
 #include "JNIUtil.h"
@@ -14,12 +15,6 @@ using namespace v8;
 namespace jv8 {
 
 class V8Runner;
-
-struct MappableMethodData {
-  jobject methodObject;
-  V8Runner* runner;
-  JavaVM* jvm;
-};
 
 #define REQUIRE_CLASS(className, globalRef)\
   if (!globalRef) {\
@@ -97,9 +92,6 @@ cacheClassData(JNIEnv* env) {
 
   JNIUtil::needsToCacheClassData = false;
 }
-
-Handle<Value>
-registerCallback (const Arguments& args);
 
 } // namespace jv8
 
