@@ -44,9 +44,19 @@ class V8Runner;
     env->ThrowNew(JNIUtil::V8Exception_class, "Unexpected Error running JS");\
   }\
   else {\
-    Persistent<Value> ex = Persistent<Value>::New(isolate, tryCatch.StackTrace());\
-    env->ThrowNew(JNIUtil::V8Exception_class, *String::Utf8Value(ex->ToString()));\
-    ex.Dispose(isolate);\
+    jstring msg = env->NewStringUTF( *String::Utf8Value(tryCatch.Exception()) );\
+    jstring filename = env->NewStringUTF( *String::Utf8Value(tryCatch.Message()->GetScriptResourceName()) );\
+    int lineNumber = tryCatch.Message()->GetLineNumber();\
+    \
+    jthrowable jException = (jthrowable)env->NewObject(\
+      JNIUtil::V8Exception_class,\
+      JNIUtil::m_V8Exception_init_str_str_int,\
+      msg,\
+      filename,\
+      lineNumber\
+    );\
+    \
+    env->Throw(jException);\
   }\
 
 static inline void
@@ -69,6 +79,10 @@ cacheClassData(JNIEnv* env) {
   // V8MappableMethod
   REQUIRE_CLASS("com/jovianware/jv8/V8MappableMethod", JNIUtil::V8MappableMethod_class)
   REQUIRE_METHOD(JNIUtil::V8MappableMethod_class, "methodToRun", "([Ljava/lang/Object;)Ljava/lang/Object;", JNIUtil::m_V8MappableMethod_runMethod)
+
+  // V8Exception
+  REQUIRE_CLASS("com/jovianware/jv8/V8Exception", JNIUtil::V8Exception_class)
+  REQUIRE_METHOD(JNIUtil::V8Exception_class, "<init>", "(Ljava/lang/String;Ljava/lang/String;I)V", JNIUtil::m_V8Exception_init_str_str_int)
 
   // Object
   REQUIRE_CLASS("java/lang/Object", JNIUtil::Object_class)

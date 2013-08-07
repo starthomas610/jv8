@@ -18,7 +18,8 @@ public:
                   sf_Undefined_instance;
 
   static jmethodID m_Function_init,
-                   m_V8MappableMethod_runMethod;
+                   m_V8MappableMethod_runMethod,
+                   m_V8Exception_init_str_str_int;
 
   static jclass V8Runner_class,
                 V8Function_class,
