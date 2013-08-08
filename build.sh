@@ -170,9 +170,9 @@ checkForErrors "Error copying v8 header files"
 msg "Building NDK libraries..."
 ABI=""
 if $DEBUG_RELEASE; then
-  NDK_DEBUG_VALUE=1
-else
   NDK_DEBUG_VALUE=0
+else
+  NDK_DEBUG_VALUE=1
 fi
 for i in $(echo $ARCHITECTURES | tr "," "\n")
 do
