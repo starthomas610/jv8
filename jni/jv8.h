@@ -47,13 +47,15 @@ class V8Runner;
     jstring msg = env->NewStringUTF( *String::Utf8Value(tryCatch.Exception()) );\
     jstring filename = env->NewStringUTF( *String::Utf8Value(tryCatch.Message()->GetScriptResourceName()) );\
     int lineNumber = tryCatch.Message()->GetLineNumber();\
+    jstring stackTrace = env->NewStringUTF( *String::Utf8Value(tryCatch.StackTrace()) );\
     \
     jthrowable jException = (jthrowable)env->NewObject(\
       JNIUtil::V8Exception_class,\
-      JNIUtil::m_V8Exception_init_str_str_int,\
+      JNIUtil::m_V8Exception_init_str_str_int_str,\
       msg,\
       filename,\
-      lineNumber\
+      lineNumber,\
+      stackTrace\
     );\
     \
     env->Throw(jException);\
@@ -82,7 +84,7 @@ cacheClassData(JNIEnv* env) {
 
   // V8Exception
   REQUIRE_CLASS("com/jovianware/jv8/V8Exception", JNIUtil::V8Exception_class)
-  REQUIRE_METHOD(JNIUtil::V8Exception_class, "<init>", "(Ljava/lang/String;Ljava/lang/String;I)V", JNIUtil::m_V8Exception_init_str_str_int)
+  REQUIRE_METHOD(JNIUtil::V8Exception_class, "<init>", "(Ljava/lang/String;Ljava/lang/String;ILjava/lang/String;)V", JNIUtil::m_V8Exception_init_str_str_int_str)
 
   // Object
   REQUIRE_CLASS("java/lang/Object", JNIUtil::Object_class)

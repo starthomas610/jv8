@@ -19,7 +19,7 @@ public:
 
   static jmethodID m_Function_init,
                    m_V8MappableMethod_runMethod,
-                   m_V8Exception_init_str_str_int;
+                   m_V8Exception_init_str_str_int_str;
 
   static jclass V8Runner_class,
                 V8Function_class,

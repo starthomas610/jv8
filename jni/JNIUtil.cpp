@@ -15,7 +15,7 @@ jfieldID JNIUtil::sf_Undefined_instance = NULL;
 // jv8 Methods
 jmethodID JNIUtil::m_Function_init = NULL;
 jmethodID JNIUtil::m_V8MappableMethod_runMethod = NULL;
-jmethodID JNIUtil::m_V8Exception_init_str_str_int = NULL;
+jmethodID JNIUtil::m_V8Exception_init_str_str_int_str = NULL;
 
 // jv8 Classes
 jclass JNIUtil::V8Runner_class = NULL;
