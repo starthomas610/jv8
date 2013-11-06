@@ -7,8 +7,7 @@ PLATFORM_VERSION=android-8
 ANT_TARGET=debug
 ARCHITECTURES="arm,x86"
 INSTALL=false
-DEBUG=false
-DEBUG_RELEASE=false
+DEBUG_RELEASE=true
 
 usage()
 {
@@ -27,7 +26,6 @@ Options:
   -p <platform>       The Android SDK version to support (default $PLATFORM_VERSION)
   -j <num-cpus>       The number of processors to use in building (default $NUM_CPUS)
   -i                  Install resulting example APK onto default device.
-  -d                  Install resulting example APK and begin debugging via ndk-gdb. (implicitly sets -i)
 EOF
 }
 
@@ -69,7 +67,7 @@ while getopts "hs:ba:n:t:p:j:id" OPTION; do
       exit
       ;;
     b)
-      DEBUG_RELEASE=true
+      DEBUG_RELEASE=false
       ;;
     s)
       V8_SRC_ROOT=$OPTARG
@@ -91,9 +89,6 @@ while getopts "hs:ba:n:t:p:j:id" OPTION; do
       ;;
     i)
       INSTALL=true
-      ;;
-    d)
-      DEBUG=true
       ;;
     ?)
       usage
@@ -180,9 +175,9 @@ function move_v8_libs {
 }
 
 if $DEBUG_RELEASE; then
-  V8_BUILD_SUFFIX="release"
-else
   V8_BUILD_SUFFIX="debug"
+else
+  V8_BUILD_SUFFIX="release"
 fi
 
 # Iterate over archs and build v8
