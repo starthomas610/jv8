@@ -140,7 +140,7 @@ patch -N $V8_SRC_ROOT/Makefile.android ./v8_makefile.patch
 # $4 = <FOLDER_TO_CHECK> (will not compile if )
 function build {
   
-  if [ -f "support/android/libs/$4/libv8_base.a" ]; then
+  if [ -f "support/android/libs/$2/$4/libv8_base.a" ]; then
     echo "Lib in $4 already exists. Skipping build."
     return;
   fi
@@ -163,7 +163,8 @@ function build {
 # $2 = <MODE>
 # $3 = <DEST_FOLDER>
 function move_v8_libs {
-  DEST_DIR="support/android/libs/$3/"
+  # ex: support/android/libs/release/armeabi
+  DEST_DIR="support/android/libs/$2/$3/"
 
   if [ -f "$DEST_DIR/libv8_base.a" ]; then
     echo "Lib in $3 already exists. Skipping copy."
@@ -172,7 +173,6 @@ function move_v8_libs {
 
   TARGET="android_$1.$2"
   mkdir -p $DEST_DIR
-  pwd
   ls -l $V8_SRC_ROOT/out/$TARGET/obj.target/tools/gyp/libv8_base.$1.a
   cp -f $V8_SRC_ROOT/out/$TARGET/obj.target/tools/gyp/libv8_base.$1.a $DEST_DIR/libv8_base.a
   cp -f $V8_SRC_ROOT/out/$TARGET/obj.target/tools/gyp/libv8_nosnapshot.$1.a $DEST_DIR/libv8_nosnapshot.a
@@ -216,9 +216,9 @@ checkForErrors "Error copying v8 header files"
 msg "Building NDK libraries..."
 ABI=""
 if $DEBUG_RELEASE; then
-  NDK_DEBUG_VALUE=0
-else
   NDK_DEBUG_VALUE=1
+else
+  NDK_DEBUG_VALUE=0
 fi
 for i in $(echo $ARCHITECTURES | tr "," "\n")
 do
