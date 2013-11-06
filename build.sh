@@ -122,7 +122,6 @@ then
 fi
 
 msg "Building v8..."
-pushd $V8_SRC_ROOT
 
 if [ ! -d "./build/gyp" ]
 then
@@ -130,36 +129,83 @@ then
   make dependencies -j$NUM_CPUS
 fi
 
+echo "Patching v8..."
+patch -N $V8_SRC_ROOT/Makefile.android ./v8_makefile.patch
+
+# Builds libv8_*.arm/ia32.a
+# 
+# $1 = <ARCH>
+# $2 = <MODE>
+# $3 = <FLAGS>
+# $4 = <FOLDER_TO_CHECK> (will not compile if )
+function build {
+  
+  if [ -f "support/android/libs/$4/libv8_base.a" ]; then
+    echo "Lib in $4 already exists. Skipping build."
+    return;
+  fi
+
+  TARGET="android_$1.$2"
+
+  pushd $V8_SRC_ROOT
+  make "android_$1.clean"
+  GYP_DEFINES="$3" make $TARGET -j$NUM_CPUS debuggersupport=on $3
+  checkForErrors "Error building v8 (arch=$1, mode=$2, flags=$2)"
+  popd
+}
+
+# Moves generated v8 libs from
+# $V8_SRC_ROOT/out/$ARCH/obj.target/tools/gyp/
+# to support/android/libs/
+# in the appropriate subfolder
+# 
+# $1 = <ARCH_TYPE>
+# $2 = <MODE>
+# $3 = <DEST_FOLDER>
+function move_v8_libs {
+  DEST_DIR="support/android/libs/$3/"
+
+  if [ -f "$DEST_DIR/libv8_base.a" ]; then
+    echo "Lib in $3 already exists. Skipping copy."
+    return
+  fi
+
+  TARGET="android_$1.$2"
+  mkdir -p $DEST_DIR
+  pwd
+  ls -l $V8_SRC_ROOT/out/$TARGET/obj.target/tools/gyp/libv8_base.$1.a
+  cp -f $V8_SRC_ROOT/out/$TARGET/obj.target/tools/gyp/libv8_base.$1.a $DEST_DIR/libv8_base.a
+  cp -f $V8_SRC_ROOT/out/$TARGET/obj.target/tools/gyp/libv8_nosnapshot.$1.a $DEST_DIR/libv8_nosnapshot.a
+  checkForErrors "Error copying v8 static library (arch=$1, dest=$DEST_DIR)"
+}
+
+if $DEBUG_RELEASE; then
+  V8_BUILD_SUFFIX="release"
+else
+  V8_BUILD_SUFFIX="debug"
+fi
+
 # Iterate over archs and build v8
 for i in $(echo $ARCHITECTURES | tr "," "\n")
 do
-  TARGET=""
   if [ "$i" == "arm" ]; then
-    TARGET="android_arm.release"
+
+    # ARM v6
+    build "arm" $V8_BUILD_SUFFIX "armv7=false" "armeabi"
+    move_v8_libs "arm" $V8_BUILD_SUFFIX "armeabi"
+
+    # ARM v7
+    build "arm" $V8_BUILD_SUFFIX "armv7=true" "armeabi-v7a"
+    move_v8_libs "arm" $V8_BUILD_SUFFIX "armeabi-v7a"
+
   elif [ "$i" == "x86" ]; then
-    TARGET="android_ia32.release"
+    echo ""
+    # x86
+    build "ia32" $V8_BUILD_SUFFIX "" "x86"
+    move_v8_libs "ia32" $V8_BUILD_SUFFIX "x86"
+
   fi
-  make $TARGET -j$NUM_CPUS debuggersupport=on
-  checkForErrors "Error building v8 (target=$TARGET)"
 done
-
-popd
-
-
-msg "Copying static library files..."
-mkdir -p support/android/libs
-for i in $(echo $ARCHITECTURES | tr "," "\n")
-do
-  ARCH=""
-  if [ "$i" == "arm" ]; then
-    ARCH="android_arm.release"
-  elif [ "$i" == "x86" ]; then
-    ARCH="android_ia32.release"
-  fi
-  rsync -tr $V8_SRC_ROOT/out/$ARCH/obj.target/tools/gyp/*.a support/android/libs/.
-  checkForErrors "Error copying v8 static library (arch=$ARCH)"
-done
-
 
 msg "Copying v8 header files..."
 mkdir -p support/include
